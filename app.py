@@ -231,8 +231,14 @@ def clean_for_pdf(text):
 
     return text.strip()
 
+
+
 def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
     """Generate a 3-page PDF report in memory and return as bytes."""
+
+    def safe(text):
+        """Clean any string before passing to PDF."""
+        return clean_for_pdf(str(text))
 
     # --- Strip emojis for Helvetica font compatibility ---
     persona_clean   = clean_for_pdf(persona)
@@ -251,13 +257,13 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
 
     pdf.set_font("Helvetica", "B", 28)
     pdf.set_text_color(67, 97, 238)
-    pdf.cell(0, 12, "PersonaSkill AI", ln=True, align="C")
+    pdf.cell(0, 12, safe("PersonaSkill AI"), ln=True, align="C")
 
     pdf.ln(4)
 
     pdf.set_font("Helvetica", "", 13)
     pdf.set_text_color(100, 100, 100)
-    pdf.cell(0, 8, "Your Career Intelligence Report", ln=True, align="C")
+    pdf.cell(0, 8, safe("Your Career Intelligence Report"), ln=True, align="C")
 
     pdf.ln(14)
 
@@ -270,21 +276,21 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
     # Persona title — emoji removed
     pdf.set_font("Helvetica", "B", 22)
     pdf.set_text_color(30, 30, 30)
-    pdf.cell(0, 12, persona_clean, ln=True, align="C")
+    pdf.cell(0, 12, safe(persona_clean), ln=True, align="C")
 
     pdf.ln(6)
 
     # Summary — emoji removed
     pdf.set_font("Helvetica", "I", 12)
     pdf.set_text_color(80, 80, 80)
-    pdf.multi_cell(0, 8, summary_clean, align="C")
+    pdf.multi_cell(0, 8, safe(summary_clean), align="C")
 
     pdf.ln(10)
 
     # Secondary — emoji removed
     pdf.set_font("Helvetica", "", 11)
     pdf.set_text_color(120, 120, 120)
-    pdf.cell(0, 8, f"Secondary Strength: {secondary_clean}", ln=True, align="C")
+    pdf.cell(0, 8, safe(f"Secondary Strength: {secondary_clean}"), ln=True, align="C")
 
     pdf.ln(14)
     pdf.line(30, pdf.get_y(), 180, pdf.get_y())
@@ -292,9 +298,9 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
 
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(150, 150, 150)
-    pdf.cell(0, 8, f"Generated on: {date.today().strftime('%B %d, %Y')}", ln=True, align="C")
+    pdf.cell(0, 8, safe(f"Generated on: {date.today().strftime('%B %d, %Y')}"), ln=True, align="C")
     pdf.ln(4)
-    pdf.cell(0, 8, "Powered by behavioral pattern analysis", ln=True, align="C")
+    pdf.cell(0, 8, safe("Powered by behavioral pattern analysis"), ln=True, align="C")  # FIX 1
 
     # ══════════════════════════════════════
     # PAGE 2 — SCORE BREAKDOWN
@@ -304,7 +310,7 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
 
     pdf.set_font("Helvetica", "B", 18)
     pdf.set_text_color(67, 97, 238)
-    pdf.cell(0, 12, "Your Psychometric Scores", ln=True)
+    pdf.cell(0, 12, safe("Your Psychometric Scores"), ln=True)  
     pdf.ln(4)
 
     pdf.set_draw_color(67, 97, 238)
@@ -329,32 +335,31 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
     for category, score, description in score_data:
         pdf.set_font("Helvetica", "B", 13)
         pdf.set_text_color(30, 30, 30)
-        pdf.cell(0, 9, category, ln=True)
+        pdf.cell(0, 9, safe(category), ln=True)
 
-        # BAAD MEIN (safe ASCII only):
         filled = int(score / 10)
         empty  = 10 - filled
         bar    = "[" + ("=" * filled) + ("-" * empty) + "]"
-        pdf.set_font("Helvetica", "", 13) 
+        pdf.set_font("Helvetica", "", 13)
         pdf.set_text_color(67, 97, 238)
-        pdf.cell(0, 8, f"{bar}   {score} / 100", ln=True)
+        pdf.cell(0, 8, safe(f"{bar}   {score} / 100"), ln=True)
 
         pdf.set_font("Helvetica", "I", 10)
         pdf.set_text_color(110, 110, 110)
-        pdf.multi_cell(0, 6, description)
+        pdf.multi_cell(0, 6, safe(description))
         pdf.ln(6)
 
     if is_hybrid:
         pdf.ln(4)
         pdf.set_font("Helvetica", "B", 11)
         pdf.set_text_color(67, 97, 238)
-        pdf.cell(0, 8, "Note: You are a Hybrid Thinker!", ln=True)
+        pdf.cell(0, 8, safe("Note: You are a Hybrid Thinker!"), ln=True)
         pdf.set_font("Helvetica", "", 10)
         pdf.set_text_color(100, 100, 100)
-        pdf.multi_cell(0, 6,
-            "Your top two scores are within 5 points — "
+        pdf.multi_cell(0, 6, safe(
+            "Your top two scores are within 5 points - "
             "meaning you have rare multi-dimensional thinking ability."
-        )
+        ))
 
     # ══════════════════════════════════════
     # PAGE 3 — CAREER ROADMAP
@@ -364,7 +369,7 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
 
     pdf.set_font("Helvetica", "B", 18)
     pdf.set_text_color(67, 97, 238)
-    pdf.cell(0, 12, "Your Career Roadmap", ln=True)
+    pdf.cell(0, 12, safe("Your Career Roadmap"), ln=True)  # FIX 2
     pdf.ln(4)
 
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
@@ -375,30 +380,30 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
 
     pdf.set_font("Helvetica", "B", 13)
     pdf.set_text_color(30, 30, 30)
-    pdf.cell(0, 9, "Top Career Roles For You", ln=True)
+    pdf.cell(0, 9, safe("Top Career Roles For You"), ln=True)
     pdf.ln(3)
 
     for role, reason in roadmap_data["roles"]:
         pdf.set_font("Helvetica", "B", 11)
         pdf.set_text_color(50, 50, 50)
-        pdf.cell(0, 7, f"  {clean_for_pdf(role)}", ln=True)
+        pdf.cell(0, 7, safe(f"  {role}"), ln=True)
 
         pdf.set_font("Helvetica", "", 10)
         pdf.set_text_color(110, 110, 110)
-        pdf.multi_cell(0, 6, f"  {clean_for_pdf(reason)}")
+        pdf.multi_cell(0, 6, safe(f"  {reason}"))
         pdf.ln(3)
 
     pdf.ln(4)
 
     pdf.set_font("Helvetica", "B", 13)
     pdf.set_text_color(30, 30, 30)
-    pdf.cell(0, 9, "Skills to Build Next", ln=True)
+    pdf.cell(0, 9, safe("Skills to Build Next"), ln=True)
     pdf.ln(3)
 
     for skill in roadmap_data["skills"]:
         pdf.set_font("Helvetica", "", 11)
         pdf.set_text_color(67, 97, 238)
-        pdf.cell(0, 7, f"  - {skill}", ln=True)
+        pdf.cell(0, 7, safe(f"  - {skill}"), ln=True)
 
     pdf.ln(10)
     pdf.set_draw_color(67, 97, 238)
@@ -407,9 +412,9 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
 
     pdf.set_font("Helvetica", "I", 12)
     pdf.set_text_color(67, 97, 238)
-    pdf.multi_cell(0, 8,
+    pdf.multi_cell(0, 8, safe(  # FIX 3
         '"Your natural wiring is your biggest career advantage. Now go build on it."'
-    )
+    ))
 
     # ══════════════════════════════════════
     # FOOTER — page numbers
@@ -420,11 +425,11 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
         pdf.set_font("Helvetica", "", 9)
         pdf.set_text_color(180, 180, 180)
         pdf.cell(0, 10,
-            f"PersonaSkill AI  |  Page {i}  |  {APP_TITLE} {APP_VERSION}",
+            safe(f"PersonaSkill AI  |  Page {i}  |  {APP_TITLE} {APP_VERSION}"),
             align="C"
         )
 
-    return bytes(pdf.output())
+    return bytes(pdf.output())    
 
 # ─────────────────────────────────────────
 # SECTION 7: MAIN HEADER
