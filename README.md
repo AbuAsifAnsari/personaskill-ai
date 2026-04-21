@@ -75,4 +75,4 @@ streamlit run app.py
 
 **Abu Aasif Ansari**
 Data Analytics & AI Tools Developer
-[LinkedIn](https://linkedin.com/in/yourprofile) | [Fiverr](https://fiverr.com/yourprofile)
+[LinkedIn](https://www.linkedin.com/in/abuaasif/) | [Fiverr](https://fiverr.com/yourprofile)
