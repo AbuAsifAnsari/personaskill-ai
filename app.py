@@ -1,5 +1,6 @@
 # ============================================================
 # PERSONASKILL AI — app.py
+# VERSION: 2.0
 # ============================================================
 
 import streamlit as st
@@ -9,10 +10,10 @@ from datetime import date
 import re
 
 # ─────────────────────────────────────────
-# SECTION 1: CONSTANTS (no magic numbers)
+# SECTION 1: CONSTANTS
 # ─────────────────────────────────────────
 APP_TITLE        = "PersonaSkill AI"
-APP_VERSION      = "v1.0"
+APP_VERSION      = "v2.0"
 MAX_SCORE        = 100
 HYBRID_THRESHOLD = 5
 QUESTION_COUNT   = 7
@@ -68,7 +69,21 @@ QUESTIONS = [
 ]
 
 # ─────────────────────────────────────────
-# SECTION 4: PERSONA MAP & SUMMARIES
+# SECTION 4: DOMAIN LIST
+# ─────────────────────────────────────────
+DOMAINS = [
+    "⚙️ Engineering & Tech",
+    "🔬 Science & Healthcare",
+    "💼 Business & Finance",
+    "🎨 Creative & Design",
+    "📚 Education & Research",
+    "🏛️ Law & Administration",
+    "🛒 Sales & Marketing",
+    "🌱 Exploring / Not Sure",
+]
+
+# ─────────────────────────────────────────
+# SECTION 5: PERSONA MAP & SUMMARIES
 # ─────────────────────────────────────────
 PERSONA_MAP = {
     "Analytical & Data": {
@@ -102,70 +117,304 @@ PERSONA_SUMMARY = {
 }
 
 # ─────────────────────────────────────────
-# SECTION 5: CAREER ROADMAP DATA
+# SECTION 6: DOMAIN CAREER MAP
+# 8 Domains x 3 Categories + Hybrid = 80 unique outcomes
 # ─────────────────────────────────────────
-CAREER_MAP = {
-    "Analytical & Data": {
-        "roles": [
-            ("Data Analyst",     "Your eye for detail turns raw numbers into business decisions."),
-            ("BI Developer",     "You naturally build systems to track and visualize performance."),
-            ("ML Ops Engineer",  "Your troubleshooting instinct fits perfectly in model pipelines."),
-        ],
-        "skills": ["Python", "Power BI", "SQL"]
+DOMAIN_CAREER_MAP = {
+    "⚙️ Engineering & Tech": {
+        "Analytical & Data": {
+            "roles": [
+                ("Data Analyst",       "Your eye for patterns turns raw data into engineering decisions."),
+                ("QA / Test Engineer", "Your detail-detection catches bugs before they reach production."),
+                ("Systems Analyst",    "You break down complex systems and find what's not working."),
+            ],
+            "skills": ["Python", "SQL", "Power BI"]
+        },
+        "Operations & Logic": {
+            "roles": [
+                ("DevOps Engineer",     "Your optimization mindset keeps systems running efficiently."),
+                ("Civil Site Engineer", "You manage workflows, resources, and timelines on ground."),
+                ("Mechanical Engineer", "Your process thinking fits perfectly in design-to-production pipelines."),
+            ],
+            "skills": ["Linux", "AutoCAD", "Project Management"]
+        },
+        "Strategy & AI-Thinking": {
+            "roles": [
+                ("AI/ML Engineer",       "Your pattern intuition gives you an edge in building intelligent systems."),
+                ("Tech Product Manager", "You connect engineering capabilities with strategic business goals."),
+                ("R&D Engineer",         "Your foresight drives innovation before the market demands it."),
+            ],
+            "skills": ["Machine Learning", "Python", "System Design"]
+        },
+        "Hybrid Thinker": {
+            "roles": [
+                ("Technical Product Manager", "You bridge engineering and strategy — a rare and valuable combination."),
+                ("Solutions Architect",       "Your multi-dimensional thinking designs systems end-to-end."),
+                ("Tech Consultant",           "You solve complex technical problems with strategic clarity."),
+            ],
+            "skills": ["System Design", "Python", "Project Management"]
+        },
     },
-    "Operations & Logic": {
-        "roles": [
-            ("Supply Chain Analyst", "Your optimization mindset keeps operations lean and efficient."),
-            ("Process Engineer",     "You naturally redesign broken workflows into clean systems."),
-            ("Operations Manager",   "Your tracking instinct makes you a natural leader of teams."),
-        ],
-        "skills": ["Excel", "ERP Systems", "Lean Six Sigma"]
+
+    "🔬 Science & Healthcare": {
+        "Analytical & Data": {
+            "roles": [
+                ("Medical Lab Technician", "Your precision in detecting anomalies ensures accurate diagnoses."),
+                ("Clinical Data Analyst",  "You turn patient data into insights that improve treatment outcomes."),
+                ("Epidemiologist",         "Your pattern recognition tracks disease spread before it peaks."),
+            ],
+            "skills": ["Medical Statistics", "Excel", "SPSS"]
+        },
+        "Operations & Logic": {
+            "roles": [
+                ("Hospital Administrator", "Your systems thinking keeps complex healthcare operations smooth."),
+                ("Pharmacist",             "Your inventory and process tracking ensures zero medication errors."),
+                ("Healthcare Coordinator", "You optimize patient flow and resource allocation naturally."),
+            ],
+            "skills": ["Healthcare Management", "ERP Systems", "Process Improvement"]
+        },
+        "Strategy & AI-Thinking": {
+            "roles": [
+                ("Medical Researcher",    "Your ability to see connections drives breakthrough discoveries."),
+                ("Health Policy Analyst", "You think ahead on how policies will impact public health outcomes."),
+                ("Biotech Strategist",    "You spot opportunities in science before they become mainstream."),
+            ],
+            "skills": ["Research Methodology", "Data Analysis", "Public Health"]
+        },
+        "Hybrid Thinker": {
+            "roles": [
+                ("Clinical Research Manager", "You combine analytical rigor with operational excellence in trials."),
+                ("Health Informatics Lead",   "Your hybrid thinking connects patient data with hospital strategy."),
+                ("Public Health Consultant",  "You analyze, operate, and strategize — all at once."),
+            ],
+            "skills": ["Research Methods", "Healthcare Management", "Data Analysis"]
+        },
     },
-    "Strategy & AI-Thinking": {
-        "roles": [
-            ("AI Product Manager",  "You connect big-picture strategy with intelligent execution."),
-            ("Strategy Consultant", "Your foresight helps businesses make smarter long-term moves."),
-            ("Data Scientist",      "Your pattern intuition gives you an edge in building AI models."),
-        ],
-        "skills": ["Machine Learning", "Prompt Engineering", "Python"]
+
+    "💼 Business & Finance": {
+        "Analytical & Data": {
+            "roles": [
+                ("Financial Analyst", "Your detail orientation spots risks others miss in balance sheets."),
+                ("Auditor",           "Your inconsistency detection makes you a natural at finding discrepancies."),
+                ("Business Analyst",  "You translate data patterns into business recommendations."),
+            ],
+            "skills": ["Excel", "SQL", "Financial Modeling"]
+        },
+        "Operations & Logic": {
+            "roles": [
+                ("Operations Manager",   "Your optimization mindset keeps business processes lean and efficient."),
+                ("Supply Chain Manager", "You naturally track inventory, logistics, and vendor performance."),
+                ("Project Manager",      "Your systematic thinking delivers projects on time and on budget."),
+            ],
+            "skills": ["ERP Systems", "Lean Six Sigma", "MS Project"]
+        },
+        "Strategy & AI-Thinking": {
+            "roles": [
+                ("Strategy Consultant", "Your foresight helps businesses make smarter long-term moves."),
+                ("Investment Analyst",  "Your pattern recognition spots market trends before they peak."),
+                ("Entrepreneur",        "You see opportunities others don't — and plan 3 steps ahead."),
+            ],
+            "skills": ["Strategic Planning", "Market Research", "Financial Forecasting"]
+        },
+        "Hybrid Thinker": {
+            "roles": [
+                ("Management Consultant",        "Your multi-dimensional thinking solves complex business problems."),
+                ("CFO / Finance Director",       "You combine number precision with big-picture financial strategy."),
+                ("Business Development Manager", "You analyze markets, run operations, and think strategically."),
+            ],
+            "skills": ["Financial Modeling", "Strategic Planning", "Communication"]
+        },
     },
-    "Hybrid Thinker": {
-        "roles": [
-            ("Analytics Consultant", "You bridge the gap between data, operations, and strategy."),
-            ("Business Analyst",     "Your multi-dimensional thinking solves complex business problems."),
-            ("Product Analyst",      "You combine logic and creativity to build better products."),
-        ],
-        "skills": ["SQL", "Tableau", "Communication"]
+
+    "🎨 Creative & Design": {
+        "Analytical & Data": {
+            "roles": [
+                ("UX Researcher",      "Your detail observation reveals what users truly need vs what they say."),
+                ("Brand Analyst",      "You spot visual and market patterns that shape brand strategy."),
+                ("Content Strategist", "Your analytical mind finds what content works and why."),
+            ],
+            "skills": ["Figma", "Google Analytics", "User Research"]
+        },
+        "Operations & Logic": {
+            "roles": [
+                ("Creative Project Manager", "You keep creative teams organized without killing the creative flow."),
+                ("Production Designer",      "Your process thinking ensures designs move smoothly from concept to output."),
+                ("Art Director",             "You build systems that maintain visual consistency across all channels."),
+            ],
+            "skills": ["Adobe Suite", "Project Management", "Brand Guidelines"]
+        },
+        "Strategy & AI-Thinking": {
+            "roles": [
+                ("Creative Director",  "You see the big picture — connecting creativity with business impact."),
+                ("AI Content Creator", "Your pattern intuition helps you craft content that resonates at scale."),
+                ("Design Strategist",  "You anticipate design trends before they become mainstream."),
+            ],
+            "skills": ["Design Thinking", "AI Tools", "Brand Strategy"]
+        },
+        "Hybrid Thinker": {
+            "roles": [
+                ("Creative Technologist", "You blend design thinking with analytical and strategic skills."),
+                ("UX Strategist",         "Your hybrid mind connects user research with business outcomes."),
+                ("Brand Consultant",      "You analyze brands, design solutions, and think long-term."),
+            ],
+            "skills": ["Design Thinking", "Analytics", "Brand Strategy"]
+        },
+    },
+
+    "📚 Education & Research": {
+        "Analytical & Data": {
+            "roles": [
+                ("Research Analyst",    "Your pattern recognition drives meaningful academic discoveries."),
+                ("Curriculum Designer", "You spot gaps in learning materials others overlook."),
+                ("Academic Evaluator",  "Your detail orientation ensures quality in assessments and outcomes."),
+            ],
+            "skills": ["Research Methods", "SPSS", "Academic Writing"]
+        },
+        "Operations & Logic": {
+            "roles": [
+                ("School Administrator", "Your systems thinking keeps educational institutions running smoothly."),
+                ("Training Manager",     "You design and optimize learning processes for maximum effectiveness."),
+                ("E-learning Developer", "You build structured, logical learning experiences for online platforms."),
+            ],
+            "skills": ["LMS Platforms", "Instructional Design", "Project Management"]
+        },
+        "Strategy & AI-Thinking": {
+            "roles": [
+                ("Education Consultant", "You see where education is heading and help institutions adapt."),
+                ("EdTech Strategist",    "Your foresight connects pedagogy with emerging technologies."),
+                ("Learning Scientist",   "You research how people learn and design better systems around it."),
+            ],
+            "skills": ["EdTech Tools", "Data Analysis", "Strategic Planning"]
+        },
+        "Hybrid Thinker": {
+            "roles": [
+                ("Academic Director",      "You combine research depth with institutional strategy."),
+                ("EdTech Product Manager", "Your hybrid thinking builds learning tools that actually work."),
+                ("Training Consultant",    "You design, deliver, and strategize learning programs."),
+            ],
+            "skills": ["Instructional Design", "Research", "Strategic Planning"]
+        },
+    },
+
+    "🏛️ Law & Administration": {
+        "Analytical & Data": {
+            "roles": [
+                ("Legal Analyst",      "Your inconsistency detection is invaluable in case research and review."),
+                ("Compliance Officer", "You naturally spot regulatory gaps before they become violations."),
+                ("Policy Researcher",  "Your pattern recognition connects legal precedents with current cases."),
+            ],
+            "skills": ["Legal Research", "Documentation", "MS Office"]
+        },
+        "Operations & Logic": {
+            "roles": [
+                ("Court Administrator", "You keep complex legal workflows organized and on schedule."),
+                ("HR Manager",          "Your process tracking ensures smooth people operations."),
+                ("Government Officer",  "Your systematic thinking navigates bureaucratic processes efficiently."),
+            ],
+            "skills": ["Administration", "Policy Implementation", "ERP Systems"]
+        },
+        "Strategy & AI-Thinking": {
+            "roles": [
+                ("Corporate Lawyer",      "You think 10 moves ahead in negotiations and contract strategy."),
+                ("Policy Strategist",     "Your foresight shapes laws and regulations that stand the test of time."),
+                ("Legal Tech Consultant", "You connect legal expertise with technology to modernize law practice."),
+            ],
+            "skills": ["Strategic Thinking", "Legal Tech", "Negotiation"]
+        },
+        "Hybrid Thinker": {
+            "roles": [
+                ("Legal Operations Manager", "You run legal departments with both analytical and strategic precision."),
+                ("Policy Advisor",           "Your hybrid mind shapes policies that are practical and future-proof."),
+                ("Compliance Strategist",    "You connect regulatory detail with long-term organizational strategy."),
+            ],
+            "skills": ["Legal Research", "Strategic Planning", "Communication"]
+        },
+    },
+
+    "🛒 Sales & Marketing": {
+        "Analytical & Data": {
+            "roles": [
+                ("Marketing Analyst", "You find patterns in campaign data that others miss entirely."),
+                ("CRM Analyst",       "Your detail tracking turns customer data into retention strategies."),
+                ("SEO Specialist",    "Your pattern recognition decodes search algorithms naturally."),
+            ],
+            "skills": ["Google Analytics", "Excel", "CRM Tools"]
+        },
+        "Operations & Logic": {
+            "roles": [
+                ("Sales Operations Manager", "You optimize the entire sales process for maximum efficiency."),
+                ("Campaign Manager",         "You run multi-channel campaigns with military-level coordination."),
+                ("Retail Manager",           "Your inventory and process tracking keeps stores running smoothly."),
+            ],
+            "skills": ["CRM", "Marketing Automation", "Excel"]
+        },
+        "Strategy & AI-Thinking": {
+            "roles": [
+                ("Growth Strategist",    "You spot market opportunities and design campaigns before trends peak."),
+                ("Brand Strategist",     "Your big-picture thinking builds brands that last decades."),
+                ("AI Marketing Manager", "You blend data intuition with AI tools to scale marketing impact."),
+            ],
+            "skills": ["Growth Hacking", "AI Marketing Tools", "Strategic Planning"]
+        },
+        "Hybrid Thinker": {
+            "roles": [
+                ("Growth Manager",            "You analyze data, run campaigns, and think strategically — all at once."),
+                ("Marketing Director",        "Your multi-dimensional thinking drives full-funnel marketing impact."),
+                ("Product Marketing Manager", "You connect product, data, and go-to-market strategy seamlessly."),
+            ],
+            "skills": ["Growth Strategy", "Analytics", "Marketing Automation"]
+        },
+    },
+
+    "🌱 Exploring / Not Sure": {
+        "Analytical & Data": {
+            "roles": [
+                ("Data Analyst",       "Strong analytical thinkers thrive here regardless of background."),
+                ("Research Assistant", "Your observation skills make you valuable in any research setting."),
+                ("Business Analyst",   "A versatile role that values pattern recognition above all else."),
+            ],
+            "skills": ["Excel", "SQL", "Critical Thinking"]
+        },
+        "Operations & Logic": {
+            "roles": [
+                ("Operations Coordinator", "Your process mindset is valuable in any industry."),
+                ("Project Coordinator",    "Every field needs someone who can organize and execute efficiently."),
+                ("Logistics Analyst",      "Your optimization instinct fits perfectly in supply chain roles."),
+            ],
+            "skills": ["MS Office", "Project Management", "Communication"]
+        },
+        "Strategy & AI-Thinking": {
+            "roles": [
+                ("Management Trainee",  "Your strategic thinking is the foundation every organization wants."),
+                ("Startup Founder",     "You see problems and solutions others don't — that's entrepreneurship."),
+                ("AI Tools Consultant", "Help businesses adopt AI tools — no deep tech background needed."),
+            ],
+            "skills": ["Strategic Thinking", "AI Tools", "Communication"]
+        },
+        "Hybrid Thinker": {
+            "roles": [
+                ("General Management Trainee", "Your versatile thinking makes you adaptable to any industry."),
+                ("Entrepreneur / Founder",     "Hybrid thinkers make the best founders — you see the full picture."),
+                ("Strategy & Ops Analyst",     "A role that values both analytical and strategic multi-tasking."),
+            ],
+            "skills": ["Critical Thinking", "MS Office", "Communication"]
+        },
     },
 }
 
 # ─────────────────────────────────────────
-# SECTION 6: SCORING FUNCTIONS
+# SECTION 7: SCORING FUNCTIONS
 # ─────────────────────────────────────────
 def calculate_scores(ans):
-    """Calculate weighted scores for all 3 categories."""
-    Q1 = ans['Q1']
-    Q2 = ans['Q2']
-    Q3 = ans['Q3']
-    Q4 = ans['Q4']
-    Q5 = ans['Q5']
-    Q6 = ans['Q6']
-    Q7 = ans['Q7']
-
+    Q1 = ans['Q1']; Q2 = ans['Q2']; Q3 = ans['Q3']
+    Q4 = ans['Q4']; Q5 = ans['Q5']; Q6 = ans['Q6']; Q7 = ans['Q7']
     analytical = round((Q1*0.4 + Q3*0.3 + Q6*0.3) * 10, 1)
     operations = round((Q2*0.4 + Q5*0.4 + Q1*0.2) * 10, 1)
     strategy   = round((Q4*0.4 + Q7*0.4 + Q5*0.2) * 10, 1)
-
-    # Cap scores at MAX_SCORE
-    analytical = min(analytical, MAX_SCORE)
-    operations = min(operations, MAX_SCORE)
-    strategy   = min(strategy,   MAX_SCORE)
-
-    return analytical, operations, strategy
+    return min(analytical, MAX_SCORE), min(operations, MAX_SCORE), min(strategy, MAX_SCORE)
 
 
 def get_persona(dominant_category, score, is_hybrid):
-    """Return persona title based on dominant category and score."""
     if is_hybrid:
         return "🌐 The Renaissance Analyst"
     for (low, high), title in PERSONA_MAP[dominant_category].items():
@@ -174,28 +423,24 @@ def get_persona(dominant_category, score, is_hybrid):
 
 
 def get_dominant_secondary(analytical, operations, strategy):
-    """Return sorted scores, dominant, secondary, and hybrid flag."""
     scores = {
         "Analytical & Data":      analytical,
         "Operations & Logic":     operations,
         "Strategy & AI-Thinking": strategy
     }
     sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-
     dominant  = sorted_scores[0]
     secondary = sorted_scores[1]
-
     is_hybrid = (dominant[1] - secondary[1]) <= HYBRID_THRESHOLD
-
     return scores, dominant, secondary, is_hybrid
 
 
 
 def clean_for_pdf(text):
-    """Remove emojis and replace special characters for Helvetica compatibility."""
-    import re
+    if not text:
+        return ""
 
-    # Step 1 — Remove emojis
+    # ✅ Remove emojis
     emoji_pattern = re.compile(
         "["
         u"\U0001F600-\U0001F64F"
@@ -212,46 +457,54 @@ def clean_for_pdf(text):
     )
     text = emoji_pattern.sub("", text)
 
-    # Step 2 — Replace special punctuation with ASCII equivalents
+    # ✅ Replace problematic unicode
     replacements = {
-        "\u2014": "-",   # em dash        —  → -
-        "\u2013": "-",   # en dash        –  → -
-        "\u2018": "'",   # left quote     '  → '
-        "\u2019": "'",   # right quote    '  → '
-        "\u201C": '"',   # left d-quote   "  → "
-        "\u201D": '"',   # right d-quote  "  → "
-        "\u2026": "...", # ellipsis       …  → ...
-        "\u00A0": " ",   # non-break space   → space
-        "\u2022": "-",   # bullet         •  → -
-        "\u2039": "<",   # single left angle
-        "\u203A": ">",   # single right angle
+        "\u2014": "-", "\u2013": "-",
+        "\u2018": "'", "\u2019": "'",
+        "\u201C": '"', "\u201D": '"',
+        "\u2026": "...", "\u00A0": " ",
+        "\u2022": "-", "\u2039": "<", "\u203A": ">",
     }
-    for original, replacement in replacements.items():
-        text = text.replace(original, replacement)
+
+    for orig, repl in replacements.items():
+        text = text.replace(orig, repl)
+
+    # 🔥 CRITICAL FIX: Force latin-1 safe text
+    text = text.encode("latin-1", "ignore").decode("latin-1")
 
     return text.strip()
 
 
 
-def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
-    """Generate a 3-page PDF report in memory and return as bytes."""
+# ✅ Custom PDF class for footer (FIXED WAY)
+class MyPDF(FPDF):
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("Helvetica", "", 9)
+        self.set_text_color(180, 180, 180)
+        self.cell(
+            0, 10,
+            f"PersonaSkill AI  |  Page {self.page_no()}  |  {APP_TITLE} {APP_VERSION}",
+            align="C"
+        )
+
+
+def generate_pdf(user_name, domain, persona, summary, a, o, s, dominant, secondary, is_hybrid, roadmap):
 
     def safe(text):
-        """Clean any string before passing to PDF."""
         return clean_for_pdf(str(text))
 
-    # --- Strip emojis for Helvetica font compatibility ---
-    persona_clean   = clean_for_pdf(persona)
-    dominant_clean  = clean_for_pdf(dominant[0])
-    secondary_clean = clean_for_pdf(secondary[0])
-    summary_clean   = clean_for_pdf(summary)
+    persona_clean   = safe(persona)
+    summary_clean   = safe(summary)
+    secondary_clean = safe(secondary[0] if secondary else "")
+    domain_clean    = safe(domain)
+    name_clean      = safe(user_name) if user_name else "Friend"
 
-    pdf = FPDF()
+    # ✅ Use custom class
+    pdf = MyPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
 
-    # ══════════════════════════════════════
-    # PAGE 1 — COVER PAGE
-    # ══════════════════════════════════════
+    # ── PAGE 1: COVER ──
     pdf.add_page()
     pdf.ln(20)
 
@@ -260,93 +513,82 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
     pdf.cell(0, 12, safe("PersonaSkill AI"), ln=True, align="C")
 
     pdf.ln(4)
-
     pdf.set_font("Helvetica", "", 13)
     pdf.set_text_color(100, 100, 100)
     pdf.cell(0, 8, safe("Your Career Intelligence Report"), ln=True, align="C")
 
-    pdf.ln(14)
+    pdf.ln(6)
+    pdf.set_font("Helvetica", "I", 11)
+    pdf.cell(0, 8, safe(f"Prepared for: {name_clean}"), ln=True, align="C")
 
+    pdf.set_font("Helvetica", "", 11)
+    pdf.cell(0, 8, safe(f"Domain: {domain_clean}"), ln=True, align="C")
+
+    pdf.ln(10)
     pdf.set_draw_color(67, 97, 238)
     pdf.set_line_width(0.8)
     pdf.line(30, pdf.get_y(), 180, pdf.get_y())
 
     pdf.ln(14)
-
-    # Persona title — emoji removed
     pdf.set_font("Helvetica", "B", 22)
     pdf.set_text_color(30, 30, 30)
-    pdf.cell(0, 12, safe(persona_clean), ln=True, align="C")
+    pdf.cell(0, 12, persona_clean, ln=True, align="C")
 
     pdf.ln(6)
-
-    # Summary — emoji removed
     pdf.set_font("Helvetica", "I", 12)
     pdf.set_text_color(80, 80, 80)
-    pdf.multi_cell(0, 8, safe(summary_clean), align="C")
+    pdf.multi_cell(0, 8, summary_clean, align="C")
 
     pdf.ln(10)
-
-    # Secondary — emoji removed
     pdf.set_font("Helvetica", "", 11)
     pdf.set_text_color(120, 120, 120)
     pdf.cell(0, 8, safe(f"Secondary Strength: {secondary_clean}"), ln=True, align="C")
 
     pdf.ln(14)
     pdf.line(30, pdf.get_y(), 180, pdf.get_y())
-    pdf.ln(12)
 
+    pdf.ln(12)
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(150, 150, 150)
     pdf.cell(0, 8, safe(f"Generated on: {date.today().strftime('%B %d, %Y')}"), ln=True, align="C")
-    pdf.ln(4)
-    pdf.cell(0, 8, safe("Powered by behavioral pattern analysis"), ln=True, align="C")  # FIX 1
 
-    # ══════════════════════════════════════
-    # PAGE 2 — SCORE BREAKDOWN
-    # ══════════════════════════════════════
+    pdf.ln(4)
+    pdf.cell(0, 8, safe("Powered by behavioral pattern analysis"), ln=True, align="C")
+
+    # ── PAGE 2: SCORES ──
     pdf.add_page()
     pdf.ln(8)
 
     pdf.set_font("Helvetica", "B", 18)
     pdf.set_text_color(67, 97, 238)
-    pdf.cell(0, 12, safe("Your Psychometric Scores"), ln=True)  
-    pdf.ln(4)
+    pdf.cell(0, 12, safe("Your Psychometric Scores"), ln=True)
 
+    pdf.ln(4)
     pdf.set_draw_color(67, 97, 238)
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+
     pdf.ln(10)
 
-    score_data = [
-        (
-            "Analytical & Data", a,
-            "Measures your ability to observe details, identify inconsistencies, and analyze patterns."
-        ),
-        (
-            "Operations & Logic", o,
-            "Measures your ability to optimize processes, navigate systems, and execute efficiently."
-        ),
-        (
-            "Strategy & AI-Thinking", s,
-            "Measures your ability to think ahead, recognize patterns, and make high-impact decisions."
-        ),
-    ]
-
-    for category, score, description in score_data:
+    for category, score, desc in [
+        ("Analytical & Data",      a, "Measures your ability to observe details, identify inconsistencies, and analyze patterns."),
+        ("Operations & Logic",     o, "Measures your ability to optimize processes, navigate systems, and execute efficiently."),
+        ("Strategy & AI-Thinking", s, "Measures your ability to think ahead, recognize patterns, and make high-impact decisions."),
+    ]:
         pdf.set_font("Helvetica", "B", 13)
         pdf.set_text_color(30, 30, 30)
         pdf.cell(0, 9, safe(category), ln=True)
 
         filled = int(score / 10)
-        empty  = 10 - filled
-        bar    = "[" + ("=" * filled) + ("-" * empty) + "]"
+        bar = "[" + ("=" * filled) + ("-" * (10 - filled)) + "]"
+
         pdf.set_font("Helvetica", "", 13)
         pdf.set_text_color(67, 97, 238)
         pdf.cell(0, 8, safe(f"{bar}   {score} / 100"), ln=True)
 
         pdf.set_font("Helvetica", "I", 10)
         pdf.set_text_color(110, 110, 110)
-        pdf.multi_cell(0, 6, safe(description))
+        pdf.multi_cell(0, 6, safe(desc))
+
         pdf.ln(6)
 
     if is_hybrid:
@@ -354,6 +596,7 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
         pdf.set_font("Helvetica", "B", 11)
         pdf.set_text_color(67, 97, 238)
         pdf.cell(0, 8, safe("Note: You are a Hybrid Thinker!"), ln=True)
+
         pdf.set_font("Helvetica", "", 10)
         pdf.set_text_color(100, 100, 100)
         pdf.multi_cell(0, 6, safe(
@@ -361,29 +604,29 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
             "meaning you have rare multi-dimensional thinking ability."
         ))
 
-    # ══════════════════════════════════════
-    # PAGE 3 — CAREER ROADMAP
-    # ══════════════════════════════════════
+    # ── PAGE 3: CAREER ROADMAP ──
     pdf.add_page()
     pdf.ln(8)
 
     pdf.set_font("Helvetica", "B", 18)
     pdf.set_text_color(67, 97, 238)
-    pdf.cell(0, 12, safe("Your Career Roadmap"), ln=True)  # FIX 2
+    pdf.cell(0, 12, safe("Your Career Roadmap"), ln=True)
+
     pdf.ln(4)
-
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+
     pdf.ln(10)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(100, 100, 100)
+    pdf.cell(0, 8, safe(f"Field: {domain_clean}"), ln=True)
 
-    roadmap_key  = "Hybrid Thinker" if is_hybrid else dominant[0]
-    roadmap_data = CAREER_MAP[roadmap_key]
-
+    pdf.ln(4)
     pdf.set_font("Helvetica", "B", 13)
     pdf.set_text_color(30, 30, 30)
     pdf.cell(0, 9, safe("Top Career Roles For You"), ln=True)
-    pdf.ln(3)
 
-    for role, reason in roadmap_data["roles"]:
+    pdf.ln(3)
+    for role, reason in roadmap["roles"]:
         pdf.set_font("Helvetica", "B", 11)
         pdf.set_text_color(50, 50, 50)
         pdf.cell(0, 7, safe(f"  {role}"), ln=True)
@@ -391,16 +634,16 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
         pdf.set_font("Helvetica", "", 10)
         pdf.set_text_color(110, 110, 110)
         pdf.multi_cell(0, 6, safe(f"  {reason}"))
+
         pdf.ln(3)
 
     pdf.ln(4)
-
     pdf.set_font("Helvetica", "B", 13)
     pdf.set_text_color(30, 30, 30)
     pdf.cell(0, 9, safe("Skills to Build Next"), ln=True)
-    pdf.ln(3)
 
-    for skill in roadmap_data["skills"]:
+    pdf.ln(3)
+    for skill in roadmap["skills"]:
         pdf.set_font("Helvetica", "", 11)
         pdf.set_text_color(67, 97, 238)
         pdf.cell(0, 7, safe(f"  - {skill}"), ln=True)
@@ -408,38 +651,48 @@ def generate_pdf(persona, summary, a, o, s, dominant, secondary, is_hybrid):
     pdf.ln(10)
     pdf.set_draw_color(67, 97, 238)
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(10)
 
+    pdf.ln(10)
     pdf.set_font("Helvetica", "I", 12)
     pdf.set_text_color(67, 97, 238)
-    pdf.multi_cell(0, 8, safe(  # FIX 3
+    pdf.multi_cell(0, 8, safe(
         '"Your natural wiring is your biggest career advantage. Now go build on it."'
     ))
 
-    # ══════════════════════════════════════
-    # FOOTER — page numbers
-    # ══════════════════════════════════════
-    for i in range(1, pdf.page_no() + 1):
-        pdf.page = i
-        pdf.set_y(-15)
-        pdf.set_font("Helvetica", "", 9)
-        pdf.set_text_color(180, 180, 180)
-        pdf.cell(0, 10,
-            safe(f"PersonaSkill AI  |  Page {i}  |  {APP_TITLE} {APP_VERSION}"),
-            align="C"
-        )
-
-    return bytes(pdf.output())    
+    # ✅ FINAL FIX: Proper PDF output
+    return pdf.output(dest='S').encode('latin-1')
 
 # ─────────────────────────────────────────
-# SECTION 7: MAIN HEADER
+# SECTION 9: MAIN HEADER
 # ─────────────────────────────────────────
 st.title("🧠 PersonaSkill AI")
 st.subheader("Discover the skills you were born with — not just the ones you studied for.")
 st.divider()
 
 # ─────────────────────────────────────────
-# SECTION 8: RENDER QUESTIONS + TRACK ANSWERS
+# SECTION 10: USER NAME + DOMAIN SELECTOR
+# ─────────────────────────────────────────
+col_name, col_domain = st.columns(2)
+
+with col_name:
+    user_name = st.text_input(
+        "👤 Your Name (optional)",
+        placeholder="e.g. Abu Aasif",
+        max_chars=50
+    )
+
+with col_domain:
+    selected_domain = st.selectbox(
+        "🌐 Select Your Field / Domain",
+        options=DOMAINS,
+        index=0,
+        help="Choose the field you work in or are interested in."
+    )
+
+st.divider()
+
+# ─────────────────────────────────────────
+# SECTION 11: QUESTIONS + TRACK ANSWERS
 # ─────────────────────────────────────────
 answers        = {}
 answered_count = 0
@@ -464,7 +717,7 @@ for q in QUESTIONS:
     st.divider()
 
 # ─────────────────────────────────────────
-# SECTION 9: SIDEBAR (uses live answered_count)
+# SECTION 12: SIDEBAR
 # ─────────────────────────────────────────
 with st.sidebar:
     st.header("💡 About")
@@ -473,19 +726,20 @@ with st.sidebar:
         "to reveal your hidden natural talents and ideal career paths."
     )
     st.divider()
-
+    if user_name:
+        st.markdown(f"**👤 Hey, {user_name}!**")
+    st.markdown(f"**🌐 Field:** {selected_domain}")
+    st.divider()
     st.markdown("**📊 Your Progress**")
     st.progress(answered_count / QUESTION_COUNT)
     st.caption(f"{answered_count} of {QUESTION_COUNT} questions answered")
     st.divider()
-
     st.warning("⚠️ This is a behavioral insight tool, not a clinical assessment.")
     st.divider()
-
     st.caption(f"{APP_VERSION} | Built with Streamlit")
 
 # ─────────────────────────────────────────
-# SECTION 10: VALIDATION + CALCULATE BUTTON
+# SECTION 13: VALIDATION + CALCULATE BUTTON
 # ─────────────────────────────────────────
 all_zero = all(v == 0 for v in answers.values())
 
@@ -501,63 +755,59 @@ calculate = st.button(
 )
 
 # ─────────────────────────────────────────
-# SECTION 11: RESULTS + ROADMAP (inside if calculate)
+# SECTION 14: RESULTS
 # ─────────────────────────────────────────
 if calculate:
 
-    # --- Calculate scores ---
     a, o, s = calculate_scores(answers)
     scores, dominant, secondary, is_hybrid = get_dominant_secondary(a, o, s)
     persona = get_persona(dominant[0], dominant[1], is_hybrid)
     summary = PERSONA_SUMMARY[persona]
 
-    # --- Celebration ---
+    # Domain-specific roadmap
+    domain_data = DOMAIN_CAREER_MAP[selected_domain]
+    roadmap     = domain_data["Hybrid Thinker"] if is_hybrid else domain_data[dominant[0]]
+
     st.balloons()
-
     st.divider()
-    st.markdown("## 🏆 Your Results")
 
-    # --- 3 Metric Cards ---
+    # Personalized heading
+    greeting = f"## 🏆 {user_name}'s Results" if user_name else "## 🏆 Your Results"
+    st.markdown(greeting)
+
+    # 3 Metric Cards
     col1, col2, col3 = st.columns(3)
-
     with col1:
         st.metric(label="🔍 Analytical & Data",      value=f"{a} / 100")
         st.progress(a / 100)
-
     with col2:
         st.metric(label="⚙️ Operations & Logic",     value=f"{o} / 100")
         st.progress(o / 100)
-
     with col3:
         st.metric(label="🚀 Strategy & AI-Thinking", value=f"{s} / 100")
         st.progress(s / 100)
 
     st.write("")
 
-    # --- Persona Card ---
+    # Persona Card
+    name_line = f"Hey **{user_name}**, you are" if user_name else "You are"
     st.success(f"""
-### {persona}
+### {name_line} —
+# {persona}
 
 {summary}
 
 🥈 *Secondary strength: **{secondary[0]}***
+🌐 *Field: **{selected_domain}***
     """)
 
-    # ─────────────────────────────────────────
-    # SECTION 12: CAREER ROADMAP
-    # ─────────────────────────────────────────
-
-    # Pick correct roadmap key
-    roadmap_key = "Hybrid Thinker" if is_hybrid else dominant[0]
-    roadmap     = CAREER_MAP[roadmap_key]
-
+    # Career Roadmap
     with st.expander("🗺️ View Your Career Roadmap", expanded=True):
-
         st.markdown("### 💼 Top Career Roles For You")
+        st.caption(f"Matched to your field: **{selected_domain}**")
         st.write("")
 
         r1, r2, r3 = st.columns(3)
-
         for col, (role, reason) in zip([r1, r2, r3], roadmap["roles"]):
             with col:
                 st.markdown(f"**{role}**")
@@ -572,22 +822,37 @@ if calculate:
                 st.info(f"📌 {skill}")
 
         st.divider()
-
         st.markdown(
             "> 💬 *Your natural wiring is your biggest career advantage. Now go build on it.*"
         )
 
-    # ─────────────────────────────────────────
-    # SECTION 14: PDF DOWNLOAD BUTTON
-    # ─────────────────────────────────────────
-
+    # Share Button
     st.divider()
+    share_name = user_name if user_name else "I"
+    share_text = (
+        f"{share_name} just discovered my career persona on PersonaSkill AI!\n\n"
+        f"I am {persona}\n"
+        f"Field: {selected_domain}\n\n"
+        f"Find out yours: https://personaskill-ai.streamlit.app"
+    )
+    st.markdown("### 📣 Share Your Persona")
+    st.code(share_text, language=None)
+    st.caption("👆 Copy this and share on LinkedIn or WhatsApp!")
 
+    # Retake Button
+    st.divider()
+    if st.button("🔄 Retake Assessment", use_container_width=True):
+        st.rerun()
+
+    # PDF Download
+    st.divider()
     with st.container():
         st.markdown("### 📄 Download Your Full Report")
-        st.caption("Get a beautifully formatted 3-page PDF with your scores, persona, and career roadmap.")
+        st.caption("3-page PDF — scores, persona, and domain-specific career roadmap.")
 
         pdf_bytes = generate_pdf(
+            user_name  = user_name,
+            domain     = selected_domain,
             persona    = persona,
             summary    = summary,
             a          = a,
@@ -595,14 +860,19 @@ if calculate:
             s          = s,
             dominant   = dominant,
             secondary  = secondary,
-            is_hybrid  = is_hybrid
+            is_hybrid  = is_hybrid,
+            roadmap    = roadmap
+        )
+
+        file_name = (
+            f"PersonaSkill_AI_{user_name.replace(' ', '_')}_Report.pdf"
+            if user_name else "PersonaSkill_AI_Report.pdf"
         )
 
         st.download_button(
-            label     = "📥 Download My PDF Report",
-            data      = pdf_bytes,
-            file_name = "PersonaSkill_AI_Report.pdf",
-            mime      = "application/pdf",
+            label            = "📥 Download My PDF Report",
+            data             = pdf_bytes,
+            file_name        = file_name,
+            mime             = "application/pdf",
             use_container_width=True
         )
-    
