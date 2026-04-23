@@ -8,6 +8,8 @@ import io
 from fpdf import FPDF
 from datetime import date
 import re
+import tempfile
+import os
 
 # ─────────────────────────────────────────
 # SECTION 1: CONSTANTS
@@ -660,10 +662,15 @@ def generate_pdf(user_name, domain, persona, summary, a, o, s, dominant, seconda
     ))
 
     # ✅ FINAL FIX: Proper PDF output
-    pdf_output = pdf.output(dest='S')
-    if isinstance(pdf_output, str):
-        return pdf_output.encode('latin-1')
-    return pdf_output
+    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+        pdf.output(tmp.name)
+        tmp_path = tmp.name
+
+    with open(tmp_path, 'rb') as f:
+        pdf_bytes = f.read()
+
+    os.unlink(tmp_path)
+    return pdf_bytes
 
 # ─────────────────────────────────────────
 # SECTION 9: MAIN HEADER
