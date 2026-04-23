@@ -660,13 +660,10 @@ def generate_pdf(user_name, domain, persona, summary, a, o, s, dominant, seconda
     ))
 
     # ✅ FINAL FIX: Proper PDF output
-    raw = pdf.output()
-    if isinstance(raw, bytes):
-        return raw
-    elif isinstance(raw, str):
-        return raw.encode('latin-1', errors='replace')
-    else:
-        return bytes(raw)
+    pdf_output = pdf.output(dest='S')
+    if isinstance(pdf_output, str):
+        return pdf_output.encode('latin-1')
+    return pdf_output
 
 # ─────────────────────────────────────────
 # SECTION 9: MAIN HEADER
